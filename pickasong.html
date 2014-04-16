@@ -1,0 +1,206 @@
+<style type="text/css">
+body{
+	margin-left: auto;
+	margin-right: auto;
+	background-color: #000;
+}
+a { 
+	outline:none; 
+	border:none;
+}
+a:link { 
+	color : #000000; 
+	text-decoration : none; 
+}
+a:hover{
+	color: #00ffff;
+}
+a:active{
+	color: #00ffff;
+}
+#box{
+	background-color: #fff;
+	margin-left: auto;
+	margin-right: auto;
+	padding-top: 40px;
+	width: 713px;
+	height: 478px;
+	border: 3px solid #000
+}
+#title{
+	font-family: Helvetica;
+	font-weight: bold;
+	font-size: 25pt;
+	margin-bottom: 50px;	
+	color: #fff;
+}
+.text{
+	color: #000;
+	font-family: Helvetica;
+	font-weight:normal;
+	font-size: 40pt;
+	margin-left: 20px;
+}
+.longrectangle{
+	background-color: #fff;
+	margin-left: auto;
+	margin-right: auto;
+	width: 640px;
+	height: 114px;
+}
+.buttontext{
+	color: #000;
+	font-family: Helvetica;
+	font-weight: 100;
+	font-size: 17pt;
+	background-color: #fff;
+	display: inline;
+}
+.smallrectangle{
+	color: #fff;
+	width: 95px;
+	height: 36px;
+	position: relative;
+	z-index: 100;
+	display: inline;
+	margin-left: 20px;
+}
+#gobutton{
+	background-color: #fff;
+	margin-left: auto;
+	margin-right: auto;
+	width: 713px;
+	height: 114px;
+	border: 3px solid #000
+}
+#gobutton:hover{
+	background-color: #00ff7f;
+}
+#gotext{
+	color: #000;
+	font-family: Helvetica;
+	font-weight: normal;
+	font-size: 40pt;
+	margin-left: 240px;
+	margin-top: 25px;
+}
+
+.hasResults {
+	background: black;
+}
+hr{
+	width: 85%;
+	height: 2px;
+	color: #000;
+	background-color: #000;
+}
+h2{
+	color: #00ff7f;
+	font-family: Helvetica;
+	font-size: 50pt;
+	margin-left: 30px;
+}
+#reset{
+	margin-left: 30px;
+	font-size: 10pt;
+}
+</style>
+<html>
+<head>
+
+</head>
+<body>
+<header id="title">pickasong</header>
+	<div id="box">
+	<div class="longrectangle"><div class="text">mood</div><br><div class="smallrectangle"><div class="buttontext">
+	<input type="radio" name="mood" value="happy">
+	happy</div></div><div class="smallrectangle"><div class="buttontext">	<input type="radio" name="mood" value="sad">sad</div></div><div class="smallrectangle"><div class="buttontext"><input type="radio" name="mood" value="tired">tired</div></div><div class="smallrectangle"><div class="buttontext"><input type="radio" name="mood" value="excited">excited</div></div></div><br>
+	<hr>
+	<div class="longrectangle"><div class="text">tempo (rpm)</div><br><div class="smallrectangle"><div class="buttontext"><input type="radio" name="tempo" value="0-60">0-60</div></div><div class="smallrectangle"><div class="buttontext"><input type="radio" name="tempo" value="61-120">61-120</div></div><div class="smallrectangle"><div class="buttontext"><input type="radio" name="tempo" value="121-160">121-160</div></div><div class="smallrectangle"><div class="buttontext"><input type="radio" name="tempo" value="161-200">161-200</div></div></div>
+	<br>
+	<hr>
+	<div class="longrectangle"><div class="text">duration (min)</div><br><div class="smallrectangle"><div class="buttontext"><input type="radio" name="duration" value="0-1">0-60</div></div><div class="smallrectangle"><div class="buttontext"><input type="radio" name="duration" value="60-120">1-2</div></div><div class="smallrectangle"><div class="buttontext"><input type="radio" name="duration" value="120-180">2-3</div></div><div class="smallrectangle"><div class="buttontext"><input type="radio" name="duration" value="180-240">3-4</div></div></div>
+	</div>
+	<div id='results'>
+	<button id="reset">Search Again</button>
+	</div>
+	<br>
+	<a id="search" href="song.html"><div id="gobutton"><div id="gotext">find song</div></div></a>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+	<script>
+		$(function(){
+			var params = {
+				api_key: '858QX1XGI8DJG4QDS',
+				format: 'jsonp',
+				mood: 'sad'
+			};
+			$('#results').hide();
+			
+			$('#reset').on('click', function(event){
+				event.preventDefault();
+				$('#results').hide();
+				$('#box').show();
+			});
+			
+			$('#search').on('click', function(event){
+				event.preventDefault();
+				var inputs = $('input[type="radio"]:checked');
+				$.each(inputs, function(i, item){
+					var key = item.name;
+					
+					if (key === 'mood') {
+						params[key] = item.value;
+					} else {
+						var splits = item.value.split('-');
+						console.log(splits);
+						params['min_' + key] = splits[0];
+						params['max_' + key] = splits[1]
+					}
+					
+					
+				});
+				getSongs();
+			});
+			
+			function getSongs() {
+				var req = $.ajax({
+					url: 'http://developer.echonest.com/api/v4/song/search',
+					dataType: 'jsonp',
+					type: 'GET',
+					data: params
+				});
+				
+				req.done(function(data){
+					var results = data.response.songs,
+						random = Math.floor(Math.random() * results.length)
+						
+					console.log(results[random]);
+					
+					var trackReq = $.ajax({
+						url: 'http://developer.echonest.com/api/v4/track/profile',
+						dataType: 'jsonp',
+						type: 'GET',
+						data: {
+							api_key: '858QX1XGI8DJG4QDS',
+							format: 'jsonp',
+							id: results[random].id,
+							bucket: 'audio_summary',
+						}
+					});
+					
+					trackReq.done(function(data){
+						console.log(data);
+					});
+					
+					$('body').addClass('hasResults');
+					$('#search').hide();
+					$('#box').hide();
+					var name = $('<h2/>', {class: 'artist-name', text: results[random].artist_name});					
+					$('#results').append(name).show();
+					
+				})
+			};
+		});
+	</script>
+</body>
+</html>
